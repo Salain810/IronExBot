@@ -95,29 +95,42 @@ async def on_reaction_add(reaction, user):
     # Ignore bot's own reactions
     if user.bot:
         return
-    
-    # Only process reactions on the tracker message
-    if reaction.message.id != data['message_id']:
+
+    # Check if this message has the card inventory embed
+    # (works for both !setup messages and forum posts)
+    is_tracker_message = False
+
+    # Check if it's the main tracker message
+    if reaction.message.id == data['message_id']:
+        is_tracker_message = True
+    # Check if it's a message with the card inventory embed
+    elif reaction.message.embeds:
+        for embed in reaction.message.embeds:
+            if embed.title == "🎴 Card Inventory":
+                is_tracker_message = True
+                break
+
+    if not is_tracker_message:
         return
-    
+
     # Map emoji to card index
     emoji_map = {
         '1️⃣': 0, '2️⃣': 1, '3️⃣': 2, '4️⃣': 3,
         '5️⃣': 4, '6️⃣': 5, '7️⃣': 6
     }
-    
+
     # Handle number reactions (add cards)
     if str(reaction.emoji) in emoji_map:
         card_index = emoji_map[str(reaction.emoji)]
         data['quantities'][card_index] += 1
         save_data(data)
-        
+
         # Update the embed
         await reaction.message.edit(embed=create_embed())
-        
+
         # Remove the user's reaction
         await reaction.remove(user)
-    
+
     # Handle checkmark (consume set)
     elif str(reaction.emoji) == '✅':
         # Check if we have at least one of each card
@@ -125,10 +138,10 @@ async def on_reaction_add(reaction, user):
             # Consume one of each
             data['quantities'] = [q - 1 for q in data['quantities']]
             save_data(data)
-            
+
             # Update the embed
             await reaction.message.edit(embed=create_embed())
-            
+
             # Send confirmation
             await reaction.message.channel.send(f"{user.mention} consumed a complete set! 🎉", delete_after=5)
         else:
@@ -137,7 +150,7 @@ async def on_reaction_add(reaction, user):
                 f"{user.mention} You need at least one of each card to consume a set!",
                 delete_after=5
             )
-        
+
         # Remove the user's reaction
         await reaction.remove(user)
 
