@@ -1,11 +1,72 @@
 # Wispbyte Setup Instructions for Card Tracker Bot
 
-## Files to Upload
+## Setup Method 1: Git Auto-Pull (Recommended)
+
+This method allows Wispbyte to automatically pull updates from GitHub on every restart.
+
+### Step 1: Create GitHub Personal Access Token
+
+Since this is a private repository, you need a GitHub token:
+
+1. Go to GitHub.com → Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Click "Generate new token (classic)"
+3. Give it a name like "Wispbyte IronExBot"
+4. Select scopes: Check `repo` (full control of private repositories)
+5. Click "Generate token"
+6. **COPY THE TOKEN** - you won't see it again!
+
+### Step 2: Set Environment Variables
+
+In your Wispbyte control panel, set these environment variables:
+
+- **`AUTO_UPDATE`** = `1` (enables git auto-clone and auto-pull)
+- **`GH_TOKEN`** = `your_github_personal_access_token` (the token you just created)
+- **`PY_FILE`** = `main.py`
+- **`REQUIREMENTS_FILE`** = `requirements.txt`
+- **`DISCORD_BOT_TOKEN`** = `your_discord_bot_token_here`
+
+### Step 3: Startup Command
+
+**Option A: With GitHub Token (for private repos)**
+
+Use this startup command if you've set the `GH_TOKEN` variable:
+
+```bash
+if [[ "${AUTO_UPDATE}" == "1" ]]; then if [[ ! -d .git ]] && [[ ! -z "${GH_TOKEN}" ]]; then rm -rf * .[^.]* 2>/dev/null; git clone https://${GH_TOKEN}@github.com/Salain810/IronExBot.git .; elif [[ -d .git ]]; then git pull; fi; fi; if [[ ! -z "${PY_PACKAGES}" ]]; then pip install -U --prefix .local ${PY_PACKAGES}; fi; if [[ -f /home/container/${REQUIREMENTS_FILE} ]]; then pip install -U --prefix .local -r ${REQUIREMENTS_FILE}; fi; /usr/local/bin/python /home/container/${PY_FILE}
+```
+
+**Option B: Public Repo (if you make the repo public)**
+
+If you make the repository public, you don't need the token:
+
+```bash
+if [[ "${AUTO_UPDATE}" == "1" ]]; then if [[ ! -d .git ]]; then rm -rf * .[^.]* 2>/dev/null; git clone https://github.com/Salain810/IronExBot.git .; elif [[ -d .git ]]; then git pull; fi; fi; if [[ ! -z "${PY_PACKAGES}" ]]; then pip install -U --prefix .local ${PY_PACKAGES}; fi; REQFILE=${REQUIREMENTS_FILE:-requirements.txt}; if [[ -f /home/container/$REQFILE ]]; then pip install -U --prefix .local -r $REQFILE; fi; PYFILE=${PY_FILE:-main.py}; /usr/local/bin/python /home/container/$PYFILE
+```
+
+**How it works:**
+- On first start (no `.git` folder): Clears the directory and clones the repository
+- On subsequent starts (`.git` exists): Runs `git pull` to get latest updates
+- Installs dependencies from `requirements.txt`
+- Starts the bot
+
+**Troubleshooting:**
+- If git asks for a password, the `GH_TOKEN` is not set or empty
+- Check that you've created the `GH_TOKEN` environment variable in Wispbyte (not just in the startup command)
+- Verify there are no extra spaces in the token value
+- Alternative: Make the repository public and use Option B
+
+---
+
+## Setup Method 2: Manual File Upload
+
+If you prefer not to use git auto-pull:
+
+### Files to Upload
 
 1. **main.py** - The bot code
 2. **requirements.txt** - Dependencies (just contains: discord.py>=2.3.0)
 
-## Startup Command
+### Startup Command
 
 Copy and paste this into the Wispbyte command editor:
 
