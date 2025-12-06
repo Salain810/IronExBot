@@ -43,10 +43,32 @@ The bot tries these in order:
 
 ## After Starting
 
-Once the bot is online in your Discord server:
-1. Type `!setup` in any channel
-2. The bot will create the card tracker embed
-3. Click reactions to add/remove cards
+Once the bot is online in your Discord server, you can use these commands:
+
+### Available Commands
+
+- **`!setup`** - Create the card tracker embed with reaction buttons
+  - The bot will create an interactive card inventory
+  - React with 1️⃣-7️⃣ to add cards
+  - React with ✅ to consume a complete set
+
+- **`!status`** - Show current card quantities in chat
+  - Displays all card counts
+  - Shows total cards and complete sets available
+  - Message auto-deletes after 10 seconds
+
+- **`!reset`** - Reset all card quantities to 0
+  - Clears the entire inventory
+  - Updates the tracker embed automatically
+
+- **`!forums`** - List all available forum channels in the server
+  - Shows a numbered list of forums
+  - Use this before creating a forum post
+
+- **`!post <number>`** - Create a forum post with card inventory
+  - First run `!forums` to see available forum channels
+  - Then run `!post 1` (or the number you want)
+  - Creates a thread in the selected forum with the current card inventory
 
 ## Notes
 

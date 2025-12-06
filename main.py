@@ -147,14 +147,82 @@ async def show_status(ctx):
     status = "**Current Card Inventory:**\n"
     for i, qty in enumerate(data['quantities'], 1):
         status += f"Card {i}: {qty}\n"
-    
+
     total = sum(data['quantities'])
     complete_sets = min(data['quantities']) if data['quantities'] else 0
-    
+
     status += f"\nTotal cards: {total}"
     status += f"\nComplete sets available: {complete_sets}"
-    
+
     await ctx.send(status, delete_after=10)
+
+@bot.command(name='forums')
+async def list_forums(ctx):
+    """List all available forum channels in the server"""
+    forums = [channel for channel in ctx.guild.channels if isinstance(channel, discord.ForumChannel)]
+
+    if not forums:
+        await ctx.send("No forum channels found in this server!")
+        return
+
+    embed = discord.Embed(
+        title="📋 Available Forum Channels",
+        description="Use `!post <number>` to create a post in one of these forums",
+        color=0x5865F2
+    )
+
+    for i, forum in enumerate(forums, 1):
+        embed.add_field(
+            name=f"{i}. {forum.name}",
+            value=f"ID: {forum.id}",
+            inline=False
+        )
+
+    await ctx.send(embed=embed)
+
+@bot.command(name='post')
+async def create_forum_post(ctx, forum_number: int = None):
+    """Create a post in a forum channel
+    Usage: !post <forum_number>
+    First use !forums to see available forum channels"""
+
+    # Get all forum channels
+    forums = [channel for channel in ctx.guild.channels if isinstance(channel, discord.ForumChannel)]
+
+    if not forums:
+        await ctx.send("No forum channels found in this server!")
+        return
+
+    # If no number provided, show the list
+    if forum_number is None:
+        await ctx.send("Please specify a forum number. Use `!forums` to see available forums.\nUsage: `!post <number>`")
+        return
+
+    # Validate the forum number
+    if forum_number < 1 or forum_number > len(forums):
+        await ctx.send(f"Invalid forum number! Please choose between 1 and {len(forums)}. Use `!forums` to see the list.")
+        return
+
+    # Get the selected forum
+    selected_forum = forums[forum_number - 1]
+
+    # Create the forum post with card inventory
+    embed = create_embed()
+
+    try:
+        # Create a thread in the forum
+        thread = await selected_forum.create_thread(
+            name=f"Card Inventory - {ctx.author.name}",
+            embed=embed,
+            reason=f"Card inventory post created by {ctx.author.name}"
+        )
+
+        await ctx.send(f"✅ Forum post created in **{selected_forum.name}**!\nView it here: {thread.thread.jump_url}")
+
+    except discord.Forbidden:
+        await ctx.send(f"❌ I don't have permission to create posts in **{selected_forum.name}**!")
+    except Exception as e:
+        await ctx.send(f"❌ Error creating forum post: {e}")
 
 # Run the bot
 if __name__ == '__main__':
