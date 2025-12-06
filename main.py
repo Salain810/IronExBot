@@ -181,9 +181,9 @@ async def list_forums(ctx):
     await ctx.send(embed=embed)
 
 @bot.command(name='post')
-async def create_forum_post(ctx, forum_number: int = None):
+async def create_forum_post(ctx, forum_number: int = None, *, post_name: str = None):
     """Create a post in a forum channel
-    Usage: !post <forum_number>
+    Usage: !post <forum_number> [post name]
     First use !forums to see available forum channels"""
 
     # Get all forum channels
@@ -195,7 +195,7 @@ async def create_forum_post(ctx, forum_number: int = None):
 
     # If no number provided, show the list
     if forum_number is None:
-        await ctx.send("Please specify a forum number. Use `!forums` to see available forums.\nUsage: `!post <number>`")
+        await ctx.send("Please specify a forum number. Use `!forums` to see available forums.\nUsage: `!post <number> [optional post name]`")
         return
 
     # Validate the forum number
@@ -209,13 +209,24 @@ async def create_forum_post(ctx, forum_number: int = None):
     # Create the forum post with card inventory
     embed = create_embed()
 
+    # Use custom name if provided, otherwise use default
+    thread_name = post_name if post_name else f"Card Inventory - {ctx.author.name}"
+
     try:
         # Create a thread in the forum
         thread = await selected_forum.create_thread(
-            name=f"Card Inventory - {ctx.author.name}",
+            name=thread_name,
             embed=embed,
             reason=f"Card inventory post created by {ctx.author.name}"
         )
+
+        # Get the first message in the thread to add reactions
+        first_message = thread.message
+
+        # Add reaction buttons to the forum post
+        reactions = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '✅']
+        for reaction in reactions:
+            await first_message.add_reaction(reaction)
 
         await ctx.send(f"✅ Forum post created in **{selected_forum.name}**!\nView it here: {thread.thread.jump_url}")
 
